@@ -1,0 +1,14 @@
+var x[5,t_max],y[t_max]
+
+model
+{
+
+  x[,1] ~ dcustom(mean_x_init[1],mean_x_init[2],mean_x_init[3],mean_x_init[4],mean_x_init[5])
+  y[1] ~ dbinom(x[4,1],x[3,1] + 100)
+  for (t in 2:t_max)
+  {
+    x[,t] ~ dcustom(x[1,t-1],x[2,t-1],x[3,t-1],x[4,t-1],x[5,t-1])
+    y[t] ~ dbinom(x[4,1],x[3,t]+100)
+  }
+}
+
