@@ -15,7 +15,7 @@ $N_{t,\infty}$ = total observed cases from time $t$ onward
 
 $N_{t,T}$ = cases that occurred on time $t$ and were observed by time $T$
 
-$n_{t,d} $ =  cases that occured on time $t$ and were observed exactly $d$ days later
+$n_{t,d}$ =  cases that occured on time $t$ and were observed exactly $d$ days later
 
 
 We see that 
@@ -28,8 +28,6 @@ where $D$ is the maximum observed delay value
 
 
 
-
-Good?
 
 
 
