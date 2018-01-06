@@ -14,25 +14,55 @@ def transition_function(particles,params):
     
     return particles  + np.random.normal(0,params[0],len(particles)).reshape((len(particles),1))
 
-def forecast_n_ahead(estimated_states,n_ahead):
-    ##
-    last_state_mean = estimated_states[-1]
-
-    last_state_mean_lag_1 = estimated_states[-2]
-    forecasts_states = []
-    forecasts_obs = []
-    for i in range(n_ahead):
-        forecasts_states.append(phi1*last_state_mean + phi2*last_state_mean_lag_1)  
-        forecasts_obs.append(np.exp(forecasts_states[i]))
-        last_state_mean_lag_1 = last_state_mean
-        last_state_mean = forecasts_states[i]
-    return forecasts_obs
-
 
 def create_uniform_particles( N,state_space_dimension):
     particles  = np.random.uniform(1, 100, size=(N,state_space_dimension))
     return particles
 
+
+
+
+
+def predict(particles,t,params):
+    particles = transition_function(particles,params)
+    return particles
+
+
+
+
+def update(particles, weights,ts,t):
+    weights.fill(1.)
+    for p in range(len(particles)):
+        weights[p] *= observation_function(ts[t],particles[p][0])
+    weights += 1.e-300
+    return weights/sum(weights)  
+
+
+
+def neff(weights):
+    return 1. / np.sum(np.square(weights))
+
+
+def estimate(particles, weights):
+    """returns mean and variance of the weighted particles"""
+
+    pos = particles[:, 0]
+    mean = np.average(pos, weights=weights, axis=0)
+    var  = np.average((pos - mean)**2, weights=weights, axis=0)
+    return mean, var
+
+### VARIOUS RESAMPLING SCHEMES
+def multinomal_resample(weights):
+    cumulative_sum = np.cumsum(weights)
+    cumulative_sum[-1] = 1.  # avoid round-off errors
+    return np.searchsorted(cumulative_sum, random(len(weights)))
+
+
+def resample_from_index(particles, weights, indexes):
+    particles[:] = particles[indexes]
+    weights[:] = weights[indexes]
+    weights.fill(1.0 / len(weights))
+    return particles,weights
 
 def stratified_resample(weights):
     N = len(weights)
@@ -52,42 +82,6 @@ def stratified_resample(weights):
     return indexes
 
 
-def predict(particles,t,params):
-    particles = transition_function(particles,params)
-    return particles
-
-def neff(weights):
-    return 1. / np.sum(np.square(weights))
-
-
-def update(particles, weights,ts,t):
-    weights.fill(1.)
-    for p in range(len(particles)):
-        weights[p] *= observation_function(ts[t],particles[p][0])
-    weights += 1.e-300
-    return weights/sum(weights)  
-
-
-def estimate(particles, weights):
-    """returns mean and variance of the weighted particles"""
-
-    pos = particles[:, 0]
-    mean = np.average(pos, weights=weights, axis=0)
-    var  = np.average((pos - mean)**2, weights=weights, axis=0)
-    return mean, var
-
-
-def multinomal_resample(weights):
-    cumulative_sum = np.cumsum(weights)
-    cumulative_sum[-1] = 1.  # avoid round-off errors
-    return np.searchsorted(cumulative_sum, random(len(weights)))
-
-
-def resample_from_index(particles, weights, indexes):
-    particles[:] = particles[indexes]
-    weights[:] = weights[indexes]
-    weights.fill(1.0 / len(weights))
-    return particles,weights
 
 def run_pf(time_series,N,state_space_dimension,params):
     
