@@ -52,7 +52,7 @@ def neff(weights):
 def estimate(particles, weights):
     """returns mean and variance of the weighted particles"""
 
-    pos = particles[:, 0]
+    pos = particles[:, 1]
     mean = np.average(pos, weights=weights, axis=0)
     var  = np.average((pos - mean)**2, weights=weights, axis=0)
     return mean, var
@@ -116,7 +116,6 @@ def get_log_likelihood_from_particle_filter(ws,params):
         tmp = np.array(ws[i])
         log_lik += np.log(tmp.sum()/len(tmp))
         
-        
     return log_lik
     
     
@@ -127,11 +126,10 @@ def particle_mcmc(time_series,num_iters,state_space_dimension):
     theta_current = np.array([1./3.,1./3.,1./3.])
     posterior = [theta_current]
     
-    
+    acceptance_ratio = 0
     for i in range(num_iters):
         # suggest new position
         theta_proposal = np.random.dirichlet(100*theta_current)
-        print (theta_proposal)
         
         # Compute likelihood by multiplying probabilities of each data point
         estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,params=[theta_current])   
@@ -159,11 +157,11 @@ def particle_mcmc(time_series,num_iters,state_space_dimension):
 
         if accept:
             # Update position
-            print ("accepted")
+            acceptance_ratio +=1
             theta_current = theta_proposal
         
         posterior.append(theta_current)
-        
+    print ("Acceptance Ratio: " + str((1.0*acceptance_ratio)/num_iters))
     return posterior
 
 
@@ -202,7 +200,6 @@ n_t_d = np.array(
 
 N_t_T = np.sum(n_t_d,axis=1)
 
-time_series  = np.ones(10)
 num_iters= 1000
 state_space_dimension = 2
 
@@ -213,12 +210,11 @@ posterior = np.array(posterior[10:])
 import matplotlib.pyplot as plt
 
 #print
-print (posterior.shape)
 print (posterior.mean(axis=0))
 
 
 
-
+means,particles,weights = run_pf(  N_t_T,N=500,state_space_dimension=state_space_dimension,params=[posterior.mean(axis=0)])
 
 
 
