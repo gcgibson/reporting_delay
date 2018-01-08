@@ -10,15 +10,13 @@ import scipy.stats
 import sys
 import numpy as np
 from numpy.random import random
-      
+import math
 
-def observation_function(time_series_at_t,t,particle,params):
-    q_t = 0
-    for i in range(t):
-        q_t += params[0][i]
-    # avoid overflow e.g. 1.0000000000001
-    q_t = min(q_t,1)
-    tmp =  scipy.stats.binom.pmf(time_series_at_t,particle,q_t)
+def observation_function(time_series_at_t,t,D,particle,params):
+    
+    tmp =  scipy.stats.multinomial.pmf(time_series_at_t,particle,params)
+    if math.isnan(tmp):
+        tmp = 0
     return tmp
 def transition_function(particles,params):
     
@@ -36,10 +34,10 @@ def predict(particles,t,params):
     return particles
 
 
-def update(particles, weights,ts,t,params):
+def update(particles, weights,ts,t,D,params):
     weights.fill(1.)
     for p in range(len(particles)):
-        weights[p] *= observation_function(ts[t],t,particles[p][1],params)
+        weights[p] *= observation_function(ts[t],t,D,particles[p][1],params)
     weights += 1.e-300
     return weights/sum(weights)  
 
@@ -89,7 +87,7 @@ def stratified_resample(weights):
 
 
 
-def run_pf(time_series,N,state_space_dimension,params):
+def run_pf(time_series,N,state_space_dimension,D,params):
     
     particles = create_uniform_particles(N=N,state_space_dimension=state_space_dimension)
     weights = np.zeros(N)    
@@ -99,7 +97,7 @@ def run_pf(time_series,N,state_space_dimension,params):
     for t in range(len(time_series)):
         particles = predict(particles,t,params)       
         # incorporate measurements
-        weights = update(particles, weights,time_series, t, params)
+        weights = update(particles, weights,time_series, t, D, params)
         ws.append(weights)
         #print (neff(weights),time_series[t],params)
         indexes = stratified_resample(weights)
@@ -120,7 +118,7 @@ def get_log_likelihood_from_particle_filter(ws,params):
     
     
     
-def particle_mcmc(time_series,num_iters,state_space_dimension):
+def particle_mcmc(time_series,num_iters,state_space_dimension,D):
     
     
     theta_current = np.array([1./3.,1./3.,1./3.])
@@ -132,16 +130,16 @@ def particle_mcmc(time_series,num_iters,state_space_dimension):
         theta_proposal = np.random.dirichlet(100*theta_current)
         
         # Compute likelihood by multiplying probabilities of each data point
-        estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,params=[theta_current])   
+        estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,D=D,params=[theta_current])   
         likelihood_current = get_log_likelihood_from_particle_filter(ws, params)
         
-        estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,params=[theta_proposal])   
+        estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,D=D,params=[theta_proposal])   
         likelihood_proposal = get_log_likelihood_from_particle_filter(ws, params)
         
         
         # Compute prior probability of current and proposed mu        
-        prior_current = np.log(1./theta_current.sum())#np.log(scipy.stats.norm(0, 10).pdf(theta_current))
-        prior_proposal =np.log( 1/theta_proposal.sum())#np.log(scipy.stats.norm(0, 10).pdf(theta_proposal))
+        prior_current = 0# np.log(1./theta_current.sum())#np.log(scipy.stats.norm(0, 10).pdf(theta_current))
+        prior_proposal =0#np.log( 1/theta_proposal.sum())#np.log(scipy.stats.norm(0, 10).pdf(theta_proposal))
         
         p_current = likelihood_current + prior_current
         p_proposal = likelihood_proposal +  prior_proposal
@@ -191,30 +189,30 @@ In order to get the N_{t,T}s we simply add up the rows
 
 
 """
-n_t_d = np.array(
-        [[4,3,2,0],
-        [3,1,2,0],
-        [2,1,0,0],
-        [3,0,0,0]]
-        )
+true_p_ds = [.25,.5,.25]
 
-N_t_T = np.sum(n_t_d,axis=1)
+n_t_d = np.random.multinomial(10,true_p_ds,100)
 
-num_iters= 1000
+#n_t_d[len(n_t_d)-1][1] = 0 
+#n_t_d[len(n_t_d)-1][2] = 0
+#n_t_d[len(n_t_d)-2][2] = 0 
+
+#N_t_T = np.sum(n_t_d,axis=1)
+
+num_iters= 100
 state_space_dimension = 2
+D=3
 
 
-
-posterior = particle_mcmc(N_t_T,num_iters,state_space_dimension)
+posterior = particle_mcmc(n_t_d,num_iters,state_space_dimension,D)
 posterior = np.array(posterior[10:])
-import matplotlib.pyplot as plt
-
+#
 #print
 print (posterior.mean(axis=0))
 
 
 
-means,particles,weights = run_pf(  N_t_T,N=500,state_space_dimension=state_space_dimension,params=[posterior.mean(axis=0)])
+#means,particles,weights = run_pf(  N_t_T,N=500,state_space_dimension=state_space_dimension,D=D,params=[posterior.mean(axis=0)])
 
 
 
