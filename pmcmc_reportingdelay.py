@@ -21,7 +21,7 @@ def observation_function(time_series_at_t,t,D,particle,params):
 def transition_function(particles,params):
     
     particles[:,0]  += np.random.normal(0,1,len(particles))
-    particles[:,1]  = np.random.poisson(np.exp(particles[:,0]))
+    particles[:,1]  = np.random.poisson(np.power(particles[:,0],2))
     return particles
 
 
@@ -131,10 +131,10 @@ def particle_mcmc(time_series,num_iters,state_space_dimension,D):
         
         # Compute likelihood by multiplying probabilities of each data point
         estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,D=D,params=[theta_current])   
-        likelihood_current = get_log_likelihood_from_particle_filter(ws, params)
+        likelihood_current = get_log_likelihood_from_particle_filter(ws, [theta_current])
         
         estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,D=D,params=[theta_proposal])   
-        likelihood_proposal = get_log_likelihood_from_particle_filter(ws, params)
+        likelihood_proposal = get_log_likelihood_from_particle_filter(ws, [theta_proposal])
         
         
         # Compute prior probability of current and proposed mu        
@@ -189,19 +189,60 @@ In order to get the N_{t,T}s we simply add up the rows
 
 
 """
-true_p_ds = [.25,.5,.25]
 
-n_t_d = np.random.multinomial(10,true_p_ds,100)
+n_t_d = []
+with open("province-biweek_with_delays.csv") as f:
+	i = 0
+	for line in f.readlines():
+		if i > 0:
+			n_t_d.append(line.replace("\n","").split(','))
+		i+=1
 
-#n_t_d[len(n_t_d)-1][1] = 0 
-#n_t_d[len(n_t_d)-1][2] = 0
-#n_t_d[len(n_t_d)-2][2] = 0 
+date_to_index = {}
 
-#N_t_T = np.sum(n_t_d,axis=1)
+i = 0
+for elm in n_t_d:
+	date_to_index[elm[0]+elm[1]] = i
+
+	i+=1
+
+
+d_to_i = {}
+i = 0
+iter_ =  date_to_index.keys()
+iter_.sort()
+for key in iter_:
+
+	d_to_i[key] = i
+	i+=1
+
+n_t = np.zeros((i,i))
+
+for elm in n_t_d:
+	try:
+		sick_date = d_to_i[elm[0]+elm[1]]
+		report_date = d_to_i[elm[4] + elm[5]]
+		n_t[sick_date][report_date] = elm[3]
+	except:
+		pass
+
+
+D= 3
+
+n_t_d = []
+for row in range(len(n_t)):
+	if len(n_t[row][row:row+D]) == D:
+		n_t_d.append(n_t[row][row:row+D].tolist())
+
+n_t_d = np.array(n_t_d)
+n_t_d = n_t_d[:,0:D]
+
+print (n_t_d)
 
 num_iters= 100
 state_space_dimension = 2
-D=3
+D= 3
+
 
 
 posterior = particle_mcmc(n_t_d,num_iters,state_space_dimension,D)
@@ -211,8 +252,6 @@ posterior = np.array(posterior[10:])
 print (posterior.mean(axis=0))
 
 
-
-#means,particles,weights = run_pf(  N_t_T,N=500,state_space_dimension=state_space_dimension,D=D,params=[posterior.mean(axis=0)])
 
 
 

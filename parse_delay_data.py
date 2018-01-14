@@ -1,4 +1,4 @@
-
+import sys
 import numpy as np
 np.set_printoptions(threshold=np.inf)
 
@@ -11,19 +11,24 @@ with open("province-biweek_with_delays.csv") as f:
 		i+=1
 
 date_to_index = {}
+
 i = 0
 for elm in n_t_d:
 	date_to_index[elm[0]+elm[1]] = i
+
 	i+=1
 
 
 d_to_i = {}
 i = 0
-for key in date_to_index.keys():
+iter_ =  date_to_index.keys()
+iter_.sort()
+for key in iter_:
+
 	d_to_i[key] = i
 	i+=1
 
-
+print (d_to_i)
 n_t = np.zeros((i,i))
 
 for elm in n_t_d:
@@ -35,6 +40,11 @@ for elm in n_t_d:
 		pass
 
 
-np.save("n_t_d",n_t) 
+D= 10
 
+n_t_d = []
+for row in range(len(n_t)):
+	if len(n_t[row][row:row+D]) == D:
+		n_t_d.append(n_t[row][row:row+D].tolist())
 
+np.save("n_t_d",n_t_d)
