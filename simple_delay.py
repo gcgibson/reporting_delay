@@ -14,13 +14,13 @@ import math
 
 def observation_function(time_series_at_t,t,D,particle,params):
     
-    tmp =  scipy.stats.poisson.pmf(time_series_at_t,particle)
+    tmp =  scipy.stats.poisson.pmf(time_series_at_t,np.exp(particle))
     if math.isnan(tmp):
         tmp = 0
     return tmp
 def transition_function(particles,params):
     
-    particles[:,0]  += np.random.normal(0,10,len(particles))
+    particles[:,0]  += np.random.normal(0,1,len(particles))
     return particles
 
 
@@ -101,7 +101,7 @@ def run_pf(time_series,N,state_space_dimension,D,params):
         indexes = stratified_resample(weights)
         particles,weights = resample_from_index(particles, weights, indexes)
         mu, var = estimate(particles, weights)
-        xs.append(mu)
+        xs.append(mu.tolist())
     return xs,particles,ws
 
  
@@ -132,7 +132,7 @@ In order to get the N_{t,T}s we simply add up the rows
 
 
 """
-SIMULATE = True
+SIMULATE = False
 
 if SIMULATE == False:
     n_t_d = []
@@ -222,12 +222,11 @@ N = 10000
 state_space_dimension = 1
 D = 6
 params = []
-print (n_t_inf)
+
 means , particles,weights = run_pf(n_t_inf,N,state_space_dimension,D,params)
 
 
-print (means)
-print (states)
-
+print (np.exp(means).tolist())
+print (n_t_inf.tolist())
 
 
