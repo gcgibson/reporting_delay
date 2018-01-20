@@ -121,7 +121,8 @@ def get_log_likelihood_from_particle_filter(ws,params):
 def particle_mcmc(time_series,num_iters,state_space_dimension,D):
     
     
-    theta_current = np.array([1./3.,1./3.,1./3.])
+    theta_current = np.ones(D)
+    theta_current = theta_current/D
     posterior = [theta_current]
     
     acceptance_ratio = 0
@@ -133,7 +134,7 @@ def particle_mcmc(time_series,num_iters,state_space_dimension,D):
         estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,D=D,params=[theta_current])   
         likelihood_current = get_log_likelihood_from_particle_filter(ws, [theta_current])
         
-        estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,D=D,params=[theta_proposal])   
+        estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,D=D,params=[theta_proposal])
         likelihood_proposal = get_log_likelihood_from_particle_filter(ws, [theta_proposal])
         
         
@@ -222,12 +223,12 @@ for elm in n_t_d:
 	try:
 		sick_date = d_to_i[elm[0]+elm[1]]
 		report_date = d_to_i[elm[4] + elm[5]]
-		n_t[sick_date][report_date] = elm[3]
+		n_t[sick_date][report_date] += int(elm[3])
 	except:
 		pass
 
 
-D= 3
+D = 4
 
 n_t_d = []
 for row in range(len(n_t)):
@@ -237,11 +238,10 @@ for row in range(len(n_t)):
 n_t_d = np.array(n_t_d)
 n_t_d = n_t_d[:,0:D]
 
-print (n_t_d)
+print (n_t_d	)
 
 num_iters= 100
 state_space_dimension = 2
-D= 3
 
 
 
@@ -250,6 +250,8 @@ posterior = np.array(posterior[10:])
 #
 #print
 print (posterior.mean(axis=0))
+
+estimated_states, particles, ws = run_pf(time_series,N=500,state_space_dimension=state_space_dimension,D=D,params=[posterior.mean(axis=0)	])
 
 
 
