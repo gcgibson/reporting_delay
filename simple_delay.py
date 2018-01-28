@@ -138,7 +138,7 @@ In order to get the N_{t,T}s we simply add up the rows
 
 
 """
-SIMULATE = True
+SIMULATE = False
 
 if SIMULATE == False:
     n_t_d = []
@@ -300,14 +300,18 @@ for i in range(len(state_trajectories)):
     row_sum = sum(test_n_t_d[i])
     q = sum(phat[:len(phat)-i-1])
     for samp in samples:
-        tmp.append(binom.pmf(row_sum,samp,q))
-        print (row_sum,samp,q)
+        btemp = binom.pmf(row_sum,samp,q)
+        if np.isnan(btemp):
+            tmp.append(0)
+        else:
+            tmp.append(btemp)
+        print (row_sum,samp,q,btemp)
     weighted_trajectories.append(tmp)
 weighted_trajectories = np.array(weighted_trajectories)
 
 
-#for i in range(len(weighted_trajectories)):
- #   weighted_trajectories[i] = weighted_trajectories[i]/sum(weighted_trajectories[i])
+for i in range(len(weighted_trajectories)):
+    weighted_trajectories[i] = weighted_trajectories[i]/sum(weighted_trajectories[i])
 
 
 ###
@@ -315,3 +319,19 @@ from sklearn.metrics import mean_squared_error
 
 print (mean_squared_error(np.average(state_trajectories,axis=1),test_n_t_inf))
 print (mean_squared_error(np.average(state_trajectories,weights = weighted_trajectories,axis=1),test_n_t_inf))
+
+
+max_indeces = np.argmax(weighted_trajectories,axis=1)
+max_point = []
+for i in range(len(max_indeces)):
+    max_point.append(state_trajectories[i][max_indeces[i]])
+
+
+
+print (mean_squared_error(max_point,test_n_t_inf))
+
+
+
+
+
+
