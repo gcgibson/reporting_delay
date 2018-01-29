@@ -139,7 +139,7 @@ In order to get the N_{t,T}s we simply add up the rows
 
 """
 SIMULATE = False
-
+D = 6
 if SIMULATE == False:
     n_t_d = []
     with open("province-biweek_with_delays.csv") as f:
@@ -181,7 +181,7 @@ if SIMULATE == False:
             pass
     
     
-    D = 4
+   
     
     n_t_d = []
     for row in range(len(n_t)):
@@ -244,7 +244,7 @@ PF = False
 if  PF:
     N = 10000
     state_space_dimension = 1
-    D = 4
+ 
     params = []
     means , particles, weights = run_pf(train_n_t_inf,N,state_space_dimension,D,params)
     
@@ -273,7 +273,7 @@ else:
     # add a 3 step auto regression
     myDLM = myDLM + autoReg(degree=2, data=train_n_t_inf, name='ar3', w=1.0)
     myDLM.fit()
-    (predictMean, predictVar) = myDLM.predictN(N=3, date=myDLM.n-1)
+    (predictMean, predictVar) = myDLM.predictN(N=D-1, date=myDLM.n-1)
 
      
 
@@ -305,7 +305,7 @@ for i in range(len(state_trajectories)):
             tmp.append(0)
         else:
             tmp.append(btemp)
-        print (row_sum,samp,q,btemp)
+        #print (row_sum,samp,q,btemp)
     weighted_trajectories.append(tmp)
 weighted_trajectories = np.array(weighted_trajectories)
 
@@ -317,8 +317,6 @@ for i in range(len(weighted_trajectories)):
 ###
 from sklearn.metrics import mean_squared_error
 
-print (mean_squared_error(np.average(state_trajectories,axis=1),test_n_t_inf))
-print (mean_squared_error(np.average(state_trajectories,weights = weighted_trajectories,axis=1),test_n_t_inf))
 
 
 max_indeces = np.argmax(weighted_trajectories,axis=1)
@@ -327,7 +325,11 @@ for i in range(len(max_indeces)):
     max_point.append(state_trajectories[i][max_indeces[i]])
 
 
-
+print "MSE ignoring delay"
+print (mean_squared_error(np.average(state_trajectories,axis=1),test_n_t_inf))
+print "MSE delay adjusted"
+print (mean_squared_error(np.average(state_trajectories,weights = weighted_trajectories,axis=1),test_n_t_inf))
+print "MSE taking most likely trajectory"
 print (mean_squared_error(max_point,test_n_t_inf))
 
 
