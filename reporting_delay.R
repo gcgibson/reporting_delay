@@ -33,7 +33,7 @@ run_metropolis_MCMC <- function(startvalue, iterations,po_data_l,p_hat,proc_fcas
 likelihood <- function(param,po_data_l,p_hat){
   n_t_d_hat = param 
   
-  singlelikelihoods = dnorm(po_data_l,p_hat*n_t_d_hat,10*sqrt(abs(n_t_d_hat)*p_hat*(1-p_hat)), log = T)
+  singlelikelihoods = dnorm(po_data_l,p_hat*n_t_d_hat,10000, log = T)
   if (is.nan(singlelikelihoods)){
     singlelikelihoods <- -1e10
     
@@ -101,29 +101,10 @@ for (cv_cutoff in 30:30){
     count <- count -1
   }
   
-  ## completely reported data
-  completley_reported_data <- test_reporting_triangle[1:(cv_cutoff-D),]
-  completley_reported_n_t_d <- rowSums(completley_reported_data)
-  fit <- auto.arima(completley_reported_n_t_d)
-  #proc_forecast <- forecast(fit,h=1)
+  proc_training_data <- rowMeans(delay_model_estimate)[1:(D-2)]
   
-  count <- D
-  bayes_model_estimate <- matrix(NA,nrow=D,ncol=100)
-  for (i in 1:D){
-    proc_forecast <- forecast(fit,h=1)
-    #p_star <- rdirichlet(1,alpha_star)
-    print ("-----")
-    print (sum(po_data[i,]))
-    print (as.numeric(proc_forecast$mean))
-    print (sum(p_star[1:count]))
-    res<-doMCMC(sum(po_data[i,]),as.numeric(proc_forecast$mean), sum(p_star[1:count]))
-    print (mean(res))
-    bayes_model_estimate[i,] <- sample(res,100)
-    completley_reported_n_t_d <- c(completley_reported_n_t_d,mean(res))
-    #print (completley_reported_n_t_d)
-    fit <- auto.arima(completley_reported_n_t_d)
-    count <- count -1
-  }
+  fit <- auto.arima(proc_training_data)
+  pred_obj <- forecast(fit,h = 2)
   
 }
 
