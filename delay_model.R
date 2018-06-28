@@ -19,7 +19,7 @@ count <- D
       #print (tmp_p)
       
       ## normal noise strategy 
-      delay_model_estimate[i,s] <- rnorm(1,sum(po_data[i,])/(tmp_p),10)
+      delay_model_estimate[i,s] <- sum(po_data[i,])/tmp_p#rnorm(1,)#/(tmp_p),50)
     }
     count <- count -1
   }

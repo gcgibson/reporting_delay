@@ -31,7 +31,4 @@ plot(fit)
 # simulate from model
 simData <- simulate(fit,nsim=25)
 print (length(simData))
-plot(as.vector(simData))
-write.csv(as.vector(simData),"simData.csv")
-# plot simulated data
-#plot(simData, main = "simulated data", xaxis.labelFormat=NULL)
+
