@@ -3,7 +3,7 @@
 get_bayes_model_descending_var <- function(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate_l){
   #### mcmc model2 : first get predictions for full nowcasting 
   ### region using arima
-  rep_fact <-1000
+  rep_fact <-2000
   offset <- D
   bayes_hohle <- matrix(NA, nrow=D,ncol=(rep_fact*NSIM))
   
@@ -28,7 +28,7 @@ get_bayes_model_descending_var <- function(test_reporting_triangle,po_data,D,cv_
          tmp <- tmp+ dnorm(n_t_inf,fcast,10000,log=T)
         }
         else{
-          tmp <- tmp + dnorm(n_t_inf,fcast,100,log=T)
+          tmp <- tmp + dnorm(n_t_inf,fcast,1000,log=T)
         }
         
         if (!is.finite(tmp)){

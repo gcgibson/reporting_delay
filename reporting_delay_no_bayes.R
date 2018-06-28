@@ -15,7 +15,7 @@ source('bayes_model_descending_variance.R')
 
 
 ## read in data
-reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
+reporting_triangle <- read.csv("chiang_mai_10.csv",header = FALSE)
 ## SET GLOBAL DELAY
 D <- 10
 
