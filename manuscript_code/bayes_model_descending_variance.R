@@ -4,23 +4,20 @@ get_bayes_model_descending_var <- function(test_reporting_triangle,po_data,D,cv_
     #### mcmc model2 : first get predictions for full nowcasting 
     ### region using arima
     rep_fact <-2000
-    offset <- D
+    
     bayes_hohle <- matrix(NA, nrow=D,ncol=(rep_fact*NSIM))
     
     #delay_model_estimate_l<- cbind(delay_model_estimate_l,delay_model_estimate_l)
 
-    
     p_star <-   get_p(test_reporting_triangle,D )
     #rdirichlet(1,alpha_star)
     fcast_training_data <- rowSums(test_reporting_triangle)[1:(cv_cutoff-D)]
     bayes_estimate_trunc <- matrix(NA,nrow=D,ncol=rep_fact)
     
-    count <- offset
-    
-    
-    
-    
-    for (i in 1:offset){
+    ## INITIALIZE REVERSE INDEX
+    count <- D
+  
+    for (i in 1:D){
       ### DEFINE LIKELIHOOD FUNCTION    
       li_func <- function(n_t_inf,partially_observed, fcast,sum_p){
         tmp <- dbinom(partially_observed,round(n_t_inf),sum_p,log = T) 
@@ -37,10 +34,10 @@ get_bayes_model_descending_var <- function(test_reporting_triangle,po_data,D,cv_
       pred_obj <- forecast(fit2,h = offset)$mean
       
       ##### RUN MCMC
-      res_obj <- Metro_Hastings(li_func, c(rowSums(po_data)[i+D-offset]), prop_sigma = 5000,
+      res_obj <- Metro_Hastings(li_func, c(rowSums(po_data)[i]), prop_sigma = 5000,
                                 par_names = NULL, quiet = TRUE,
                                 iterations = 5000, burn_in = 1000,
-                                adapt_par = c(500, 20, 0.5, 0.75),partially_observed=rowSums(po_data)[i+D-offset],
+                                adapt_par = c(500, 20, 0.5, 0.75),partially_observed=rowSums(po_data)[i],
                                 fcast = pred_obj[i],sum_p = sum(p_star[1:count])-.000000001)
       bayes_estimate_trunc[i,] <- sample(res_obj$trace,size = rep_fact,replace = TRUE)
       ##### INVERSE INDEX TO P_SUM
