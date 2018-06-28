@@ -4,7 +4,7 @@ library(forecast)
 library(matrixStats)
 library(MASS)
 library(boot)
-setwd("/Users/gcgibson/reporting_delay/")
+setwd("/Users/gcgibson/reporting_delay/manuscript_code/")
 
 source('utils.R')
 source('delay_model.R')
