@@ -12,13 +12,13 @@ source('delay_model.R')
 source('bayes_model.R')
 
 
-
-## read in data
-#reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
-#reporting_triangle <- 
-reporting_triangle <- read.csv("chiang_mai_10.csv",header = FALSE)
 ## SET GLOBAL DELAY
 D <- 10
+## read in data
+#reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
+reporting_triangle <- generate_data(D)
+#reporting_triangle <- read.csv("chiang_mai_10.csv",header = FALSE)
+
 
 ### CV START /STOP
 start <- 40

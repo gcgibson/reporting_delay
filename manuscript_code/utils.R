@@ -1,6 +1,6 @@
 library(surveillance)
 
-generate_data <- function(){
+generate_data <- function(D){
   ts <- c( 173,203,191,145,100,131,81,90,51,101,69,103,175,191,206,166,192,228,259,270,277,286,381,425,381,28,287,279,252,201,209,194,142,207,269,430,566,502,505,676,774,860,1188,1371,1220,1449,1558,2569,4281,5824,4307,133,1169,754,451,375,470,261,119,111,75,54,40,55,67,95,210,247,285,304,291,274,308,358,650,556,4,0)
   
   
@@ -24,8 +24,18 @@ generate_data <- function(){
   plot(fit)
   
   # simulate from model
-  simData <- simulate(fit,nsim=25)
-  return (simData)
+  simData <- simulate(fit,nsim=2,simplify = TRUE)
+  simDataVec <- c(simData[,,1],simData[,,2])
+  data_mat <- matrix(NA,nrow=length(simDataVec),ncol=D)
+  p <- rdirichlet(1,c(0.000001,rep(10,5),rep(1,D-6)))
+  
+  for (row in 1:nrow(data_mat)){
+    data_mat[row,] <- p*simData[row]
+  }
+  #for (i in length(simData):(length(simData)-D)){
+    
+  #}
+  return (data_mat)
   
 }
 
