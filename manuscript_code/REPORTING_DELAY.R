@@ -14,7 +14,9 @@ source('bayes_model.R')
 
 
 ## read in data
-reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
+#reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
+#reporting_triangle <- 
+reporting_triangle <- read.csv("chiang_mai_10.csv",header = FALSE)
 ## SET GLOBAL DELAY
 D <- 10
 
@@ -77,4 +79,7 @@ for (cv_cutoff in start:stop){
   coverage_prob[(cv_cutoff-start +1),2] <- bayes_hohle_cp/D
   
 }
+
+write.matrix(mse_vec,"chiang_mai_results_mse")
+write.matrix(coverage_prob,"chiang_mai_results_coverageprob")
 
