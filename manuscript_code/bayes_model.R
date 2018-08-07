@@ -97,7 +97,7 @@ get_bayes_model_naive <- function(test_reporting_triangle,po_data,D,cv_cutoff,NS
     res_obj <- Metro_Hastings(li_func, c(rowSums(po_data)[i]), prop_sigma = 5000,
                             par_names = NULL, quiet = TRUE,
                             iterations = 5000, burn_in = 1000,
-                            adapt_par = c(500, 20, 0.5, 0.75),partially_observed=rowSums(po_data)[1],
+                            adapt_par = c(500, 20, 0.5, 0.75),partially_observed=rowSums(po_data)[i],
                             fcast = pred_obj[i],sum_p = sum(p_star[1:count])-.000000001,point=1,sigma=arm_mod$sigma2)
     bayes_estimate_trunc[i,] <- sample(res_obj$trace,size = rep_fact,replace = TRUE)
     count <- count - 1

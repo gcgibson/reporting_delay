@@ -15,9 +15,9 @@ source('bayes_model.R')
 ## SET GLOBAL DELAY
 D <- 10
 ## read in data
-reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
+#reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
 #reporting_triangle <- generate_data(D)
-#reporting_triangle <- read.csv("chiang_mai_10.csv",header = FALSE)
+reporting_triangle <- read.csv("chiang_mai_10.csv",header = FALSE)
 
 
 ### CV START /STOP
@@ -40,8 +40,8 @@ for (cv_cutoff in start:stop){
   ### MODEL ESTIMATES
   delay_model_estimate <- get_delay_model(test_reporting_triangle,po_data,D,NSIM)
   #zero_inf_offset_2 <- get_zero_model(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,1)
-  bayes_us <- get_bayes_model_naive(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
-  bayes_hohle <- get_bayes_model(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
+  bayes_us <- get_bayes_model(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
+  bayes_hohle <- get_bayes_model_naive(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
   
   
   ### COMPUTE MSE
