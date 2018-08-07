@@ -32,3 +32,71 @@ plot(fit)
 simData <- simulate(fit,nsim=25)
 print (length(simData))
 
+
+library(ForecastFramework)
+library(surveillance)
+
+# load dengue thai data
+data_dir <- 'C:/Users/HSDK/Desktop/repos/ForecastFramework/thai-dengue-district-challenge/data/'
+dist_counts <- read.csv(paste0(data_dir, 'district-biweek-counts.csv'), header=TRUE)
+
+# get bangkok indices
+bangkok_idx <- which(dist_counts$province==10)
+
+# split train/test
+n.ahead <- 5
+test.idx <- tail(bangkok_idx, n.ahead)
+train.data <- dist_counts[bangkok_idx[-test.idx],]
+test.data <- dist_counts[bangkok_idx[test.idx],]
+
+############# ############# ############# #############
+########## Function to fit HHH4 model ############# #############
+
+fit_hhh4 <- function(train.data, n.ahead, verbose=FALSE){
+    # append NA 'hack'
+    append.df <- data.frame(province=rep(train.data$province[1], n.ahead),
+    district=rep(NA, n.ahead),
+    year=rep(tail(train.data$year,1), n.ahead),
+    biweek=seq(tail(train.data$biweek,1)+1,
+    tail(train.data$biweek,1)+n.ahead, 1) %% 27,
+    cases=rep(NA, n.ahead),
+    date_sick=rep(NA,n.ahead))
+    
+    train.data <- rbind(train.data, append.df)
+    
+    # bangkok case count
+    train.disProg <- create.disProg(week=train.data$biweek,
+    observed=train.data$cases,
+    state=train.data$province,
+    start=c(2006,1),
+    freq=26,
+    neighbourhood=NULL,
+    populationFrac=NULL,
+    epochAsDate=TRUE)
+    
+    train.sts <- disProg2sts(train.disProg)
+    
+    # specify a formula object for the endemic component
+    f_S1 <- addSeason2formula(f = ~ 1, S = 1, period = 26)
+    
+    # fit the Poisson model
+    bangkok_NegBinFit <- hhh4(train.sts, control = list(end = list(f = f_S1),
+    family = "NegBin1"))
+    
+    # fit an autoregressive model
+    bangkok_NegBinAR <- update(bangkok_NegBinFit, ar = list(f = ~ 1))
+    
+    # print coefficient estimates
+    if(verbose == TRUE) {
+        coefs.est <- coef(bangkok_NegBinAR,
+        se = TRUE, # also return standard errors
+        amplitudeShift = TRUE, # transform sine/cosine coefficients
+        idx2Exp = TRUE) # exponentiate remaining parameters
+        summary(coefs.est)
+    }
+    
+    # predict ahead
+    pred.ahead <- oneStepAhead(bangkok_NegBinAR, nrow(train.data)-n.ahead)
+    
+}
+
