@@ -15,9 +15,9 @@ source('bayes_model.R')
 ## SET GLOBAL DELAY
 D <- 10
 ## read in data
-#reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
+reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
 #reporting_triangle <- generate_data(D)
-reporting_triangle <- read.csv("chiang_mai_10.csv",header = FALSE)
+#reporting_triangle <- read.csv("chiang_mai_10.csv",header = FALSE)
 
 
 ### CV START /STOP
@@ -41,6 +41,8 @@ for (cv_cutoff in start:stop){
   delay_model_estimate <- get_delay_model(test_reporting_triangle,po_data,D,NSIM)
   #zero_inf_offset_2 <- get_zero_model(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,1)
   bayes_us <- get_bayes_model(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
+  bayes_hierarchical <- get_bayes_model_hierarchical(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
+  
   bayes_hohle <- get_bayes_model_naive(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
   
   
@@ -49,8 +51,9 @@ for (cv_cutoff in start:stop){
   
   mse_vec[(cv_cutoff-start +1),1] <- mean((rowMeans(delay_model_estimate)-truth)^2)
   mse_vec[(cv_cutoff-start +1),2] <- mean((rowMeans(bayes_us)-truth)^2)
+  mse_vec[(cv_cutoff-start +1),3] <- mean((rowMeans(bayes_hierarchical)-truth)^2)
   
-  mse_vec[(cv_cutoff-start +1),3] <- mean((rowMeans(bayes_hohle)-truth)^2)
+  mse_vec[(cv_cutoff-start +1),4] <- mean((rowMeans(bayes_hohle)-truth)^2)
   #mse_vec[(cv_cutoff-start +1),3] <- mean((rowMeans(zero_inf_offset_2)-truth)^2)
   
  #  png(paste('fcast',toString(cv_cutoff),'.png',sep=""))
