@@ -10,19 +10,19 @@ source('utils.R')
 source('delay_model.R')
 source('zero_model.R')
 source('bayes_model.R')
-
+source('hohle_model.R')
 
 ## SET GLOBAL DELAY
-D <- 10
+D <- 26
 ## read in data
-reporting_triangle <- read.csv("bangkok_10.csv",header = FALSE)
+reporting_triangle <- read.csv("bangkok_26.csv",header = FALSE)
 #reporting_triangle <- generate_data(D)
 #reporting_triangle <- read.csv("chiang_mai_10.csv",header = FALSE)
 
-
+ 
 ### CV START /STOP
-start <- 40
-stop <-  dim(reporting_triangle)[1]
+start <- 34
+stop <-  68#dim(reporting_triangle)[1]
 NSIM <- 100
 ### INITIALIZE EMPTY VECS
 mse_vec <- matrix(NA,nrow=stop-start + 1,ncol=5)
@@ -41,9 +41,9 @@ for (cv_cutoff in start:stop){
   delay_model_estimate <- get_delay_model(test_reporting_triangle,po_data,D,NSIM)
   #zero_inf_offset_2 <- get_zero_model(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,1)
   bayes_us <- get_bayes_model(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
-  bayes_hierarchical <- get_bayes_model_hierarchical(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
+  #bayes_hierarchical <- get_bayes_model_hierarchical(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
   
-  bayes_hohle <- get_bayes_model_naive(test_reporting_triangle,po_data,D,cv_cutoff,NSIM,delay_model_estimate)
+  bayes_hohle <- get_hohle_estimate(test_reporting_triangle,po_data,D,NSIM)
   
   
   ### COMPUTE MSE
@@ -51,10 +51,10 @@ for (cv_cutoff in start:stop){
   
   mse_vec[(cv_cutoff-start +1),1] <- mean((rowMeans(delay_model_estimate)-truth)^2)
   mse_vec[(cv_cutoff-start +1),2] <- mean((rowMeans(bayes_us)-truth)^2)
-  mse_vec[(cv_cutoff-start +1),3] <- mean((rowMeans(bayes_hierarchical)-truth)^2)
+ # mse_vec[(cv_cutoff-start +1),3] <- mean((rowMeans(bayes_hierarchical)-truth)^2)
   
   mse_vec[(cv_cutoff-start +1),4] <- mean((rowMeans(bayes_hohle)-truth)^2)
-  #mse_vec[(cv_cutoff-start +1),3] <- mean((rowMeans(zero_inf_offset_2)-truth)^2)
+  #mse_vec[(cv_cutoff-start +1),5] <- mean((rowMeans(zero_inf_offset_2)-truth)^2)
   
  #  png(paste('fcast',toString(cv_cutoff),'.png',sep=""))
  #  plot((cv_cutoff-D+1):cv_cutoff,truth,col="black",type="l",ylim=c(0,max(truth)+1))
