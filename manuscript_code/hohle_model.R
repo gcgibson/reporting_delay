@@ -2,11 +2,11 @@ library(surveillance)
 
 
 get_hohle_estimate <- function(full_reporting_triangle,po_data,D,NSIM){
-  #browser()
+  browser()
   
   # create the partially observed triangle (for the other methods i pass in both the fully reported triangle
   # and also the partially observed triangle)
-  reporting_triangle <- cbind(full_reporting_triangle[1:(length(full_reporting_triangle)-D),],po_data)
+  reporting_triangle <- rbind(full_reporting_triangle[1:(nrow(full_reporting_triangle)-D),],po_data)
   
   # add 1 because the hohle method requires the triangle to have at least one case per row 
   reporting_triangle <- reporting_triangle +1
